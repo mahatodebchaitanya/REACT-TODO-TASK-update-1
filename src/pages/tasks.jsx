@@ -1,14 +1,14 @@
 import React, { useContext, useState } from 'react'
 import { TodoContext } from '../context/context'
 import { useNavigate } from 'react-router-dom'
-import moment from 'moment'
+import moment, { duration } from 'moment'
 import Layout from '../layout/layout'
 import '../App.css'
 const Tasks = () => {
 
 
   const [searchTerm, setSearchTerm] = useState(''); 
-  const { task, setTask, setCompleteTask } = useContext(TodoContext);
+  const { task, setTask,completeTask, setCompleteTask } = useContext(TodoContext);
   const navigate = useNavigate();
 
   
@@ -64,9 +64,36 @@ const deleteTask = (id) => {
 
   setFilteredTasks(updatedFilteredTasks);
 };
-
-
 // deleting task end here
+
+
+// set complete task start here
+// Handle checkbox change (add to completeTask or remove from it)
+const handleCheckboxChange = (taskId) => {
+  const completedTask = task.find(t => t.id === taskId);
+
+  // Check if task is already completed
+  const isTaskAlreadyCompleted = completeTask.some(t => t.id === taskId);
+
+  if (isTaskAlreadyCompleted) {
+    // If task is already completed, remove it from completeTask
+    setCompleteTask(completeTask.filter(t => t.id !== taskId));
+  } else {
+    // If task is not completed, add it to completeTask
+    setCompleteTask([...completeTask, {
+      ...completedTask, // Spread all properties from the task object
+      completed: true   // Set the completed flag to true
+    }]);
+  }
+
+  console.log(completeTask);
+};
+
+// set complete task end here
+
+
+
+
   return (
     <Layout>
       <div id='task'>
@@ -97,11 +124,16 @@ const deleteTask = (id) => {
                   {filteredTasks[date].map((task) =>{   
                   return(
                     <li key={task.id} id='t'>
-                      {moment(date).isSame(moment(),'day')||moment(date).isSame(moment().subtract(1, 'days'), 'day')?<input type="checkbox" />:''}
+                      {moment(date).isSame(moment(),'day')||moment(date).isSame(moment().subtract(1, 'days'), 'day')?<input
+                      type="checkbox"
+                      checked={completeTask.some(t => t.id === task.id)} // Check if task is already in completeTask
+                      onChange={() => handleCheckboxChange(task.id)} // Call checkbox handler
+                    />:''}
                       <strong>Task Name: {task.task}</strong>
                       <strong>{task.date.toDateString()}</strong>
                       <strong>Start time : {task.startTime.toLocaleTimeString()}</strong>
                       <strong>End time : {task.endTime.toLocaleTimeString()}</strong>
+                       <strong>Duration:{task.duration}</strong>
                       <button onClick={() =>deleteTask(task.id)}>delete</button>
                     </li>
                       )})}
